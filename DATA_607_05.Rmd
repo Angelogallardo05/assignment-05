@@ -1,0 +1,124 @@
+---
+title: "HW week 5"
+author: "Angel Gallardo"
+date: "2024-02-24"
+output: html_document
+---
+
+
+Open csv file from github
+
+```{r}
+library(tidyverse)
+library(dplyr)
+library(ggplot2)
+
+
+Flights <- read.csv("https://raw.githubusercontent.com/Angelogallardo05/assignment-05/main/DATA605_05.csv")
+head(Flights)
+```
+
+```{r}
+Flights_clean <- na.omit(Flights)
+head(Flights_clean)
+```
+
+
+
+Add the Airlines name to the missing rows
+```{r}
+# Duplicate Alaska into the second row
+Flights_clean[2, "X"] <- Flights_clean[1, "X"]
+
+# Duplicate AM WEST into the fourth row
+Flights_clean[4, "X"] <- Flights_clean[3, "X"]
+
+# Display the modified dataset
+Flights_clean
+
+
+
+
+
+
+
+```
+
+
+COnvert the coloumns of cities into rows and values into one column
+
+```{r}
+
+
+# Convert columns 3-7 into rows
+Flights_data <- Flights_clean %>%
+  pivot_longer(cols = c(Los.Angeles:Seattle),
+               names_to = "City",
+               values_to = "Value")
+
+# Display the modified dataset
+Flights_data
+```
+
+Rename first two columns 
+```{r}
+Flights_data <- Flights_data %>%
+  rename(
+   Airline = X,
+   Status = X.1,
+   Amount = Value)
+
+Flights_data
+```
+
+
+
+
+Create a bar chart of delayed to total  by airline in %
+
+
+```{r}
+Flights_data <- Flights_data %>%
+  group_by( Airline) %>%
+  mutate(Percentage = Amount / sum(Amount) * 100)
+
+ggplot(data= Flights_data, aes(x= Airline, y = Percentage, fill = Status))+
+  geom_bar(stat = "identity")
+```
+
+
+
+
+
+```{r}
+# Find the city with the most delays for each airline
+Most_delayed_city <- Flights_data %>%
+  filter(Status == "delayed") %>%
+  group_by(Airline, City) %>%
+  summarise(Total_delays = Amount) %>%
+  top_n(3, Total_delays)  # Select the city with the most delays for each airline
+
+Most_delayed_city
+
+
+
+# Create the bar chart
+ggplot(data = Most_delayed_city, aes(x = City, y = Total_delays, fill = Airline)) +
+  geom_bar(stat = "identity") +
+  labs(title = "Most Delayed City by Airline",
+       x = "City",
+       y = "Amount") +
+  theme_minimal()
+```
+
+
+
+
+
+
+
+
+
+
+
+
